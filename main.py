@@ -43,6 +43,7 @@ def find_winner():
 intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
+update_channels = []
 
 # runs when the bot is ready
 @client.event
@@ -50,20 +51,30 @@ async def on_ready():
     daily_update.start()
     print("We have logged in as {0.user}".format(client))
 
-# runs when a message "$forecast" is sent
+# runs when a message is sent
 @client.event
 async def on_message(message):
     if message.author == client.user:
         return
-
+        
     if message.content.startswith("$forecast"):
         await message.channel.send(find_winner())
-
+    
+    #TODO: debug
+    if message.author.id == 391343816155725824:
+        
+        if message.content.startswith("$add"):
+            update_channels.append(message.channel.id)
+            
+        if message.content.startswith("$remove"):
+            update_channels.remove(message.channel.id)
+        
 
 # runs at 9AM everyday
+#TODO: debug
 @tasks.loop(time=datetime.time(hour=17, minute=0))
 async def daily_update():
-    channel = client.get_channel(1144885293426688102)
-    await channel.send("Daily Update:\n" + find_winner())
+    for channel in update_channels:
+        await client.get_channel(channel).send("Daily Update:\n" + find_winner())
   
 client.run(os.getenv("TOKEN"))
