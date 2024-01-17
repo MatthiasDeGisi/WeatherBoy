@@ -1,7 +1,7 @@
 # WeatherBoy
-WeatherBoy is a Discord bot that serves one purpose: fuels a feud between two weather station enthusiasts.
+WeatherBoy is a Discord bot that serves one purpose: fueling a feud between two weather station enthusiasts.
 ## Requirements
-The server that this bot runs on requires cURL and C++ 14 or greater.
+The server that this bot runs on requires Python 3.11 and cURL.
 
 Python packages:
 
@@ -13,6 +13,11 @@ To set up the virtual environment, run
 
 To activate the environment, run `env/Scripts/activate.bat` in CMD, or `env/Scripts/Activate.ps1` in PowerShell.
 
-Flask is required. To install, run: `pip install flask`
+[Alternatively, VSCode has a built in feature for virtual environments.](https://code.visualstudio.com/docs/python/environments)
 
-Discord.py is required. To install, run `py -3 -m pip install -U discord.py`
+Discord.py is required. To install, run `pip install discord.py`
+
+Dotenv is required. To install, run `pip install python-dotenv`
+
+## Note to Self
+This requires a .env file with a token to work. For security reasons, this is not included in the repo.
