@@ -60,18 +60,18 @@ async def on_message(message):
     if message.content.startswith("$forecast"):
         await message.channel.send(find_winner())
     
-    #TODO: debug
     if message.author.id == 391343816155725824:
         
         if message.content.startswith("$add"):
             update_channels.append(message.channel.id)
+            await message.channel.send("Added.")
             
         if message.content.startswith("$remove"):
             update_channels.remove(message.channel.id)
+            await message.channel.send("Removed.")
         
 
 # runs at 9AM everyday
-#TODO: debug
 @tasks.loop(time=datetime.time(hour=17, minute=0))
 async def daily_update():
     for channel in update_channels:
