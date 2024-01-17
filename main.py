@@ -8,7 +8,7 @@ import datetime
 from dotenv import load_dotenv
 load_dotenv()
 
-
+#TODO: see if I can do it without writing to a file
 def find_winner():
     """Find the winner of the gold star badge.
 
