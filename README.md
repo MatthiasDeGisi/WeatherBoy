@@ -3,9 +3,7 @@ WeatherBoy is a Discord bot that serves one purpose: fueling a feud between two 
 ## Requirements
 The server that this bot runs on requires Python 3.11 and cURL.
 
-Python packages:
-
-VirtualEnv is required. To install, run:
+A virtual environment is recommended. To install, run:
 `pip install virtualenv`
 
 To set up the virtual environment, run
@@ -14,6 +12,8 @@ To set up the virtual environment, run
 To activate the environment, run `env/Scripts/activate.bat` in CMD, or `env/Scripts/Activate.ps1` in PowerShell.
 
 [Alternatively, VSCode has a built in feature for virtual environments.](https://code.visualstudio.com/docs/python/environments)
+
+**Python packages:**
 
 Discord.py is required. To install, run `pip install discord.py`
 
