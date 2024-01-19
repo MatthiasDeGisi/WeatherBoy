@@ -8,26 +8,16 @@ import datetime
 from dotenv import load_dotenv
 load_dotenv()
 
-#TODO: see if I can do it without writing to a file
+#TODO: debug
 def find_winner():
     """Find the winner of the gold star badge.
 
     Returns:
         str: The winner of the gold star badge.
     """
-    os.system("curl -o output.txt https://www.wunderground.com/dashboard/pws/IGABRI5")
+    darren = os.system("curl https://www.wunderground.com/dashboard/pws/IGABRI5")
+    brandon = os.system("curl https://www.wunderground.com/dashboard/pws/IEXTEN1")
 
-
-    with open("output.txt", "r", errors="replace") as f:
-        darren = f.read()
-
-    os.system("curl -o output.txt https://www.wunderground.com/dashboard/pws/IEXTEN1")
-
-    with open("output.txt", "r+", errors="replace") as f:
-        brandon = f.read()
-        
-        f.seek(0)
-        f.truncate() 
 
     if "goldstar" in darren and "goldstar" in brandon:
         return "Both have the badge!"
