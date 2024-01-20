@@ -73,30 +73,39 @@ async def on_message(message):
         # adds the channel to the update list
         if message.content.startswith("$add"):
             
-            with open("data/update_channels.txt", "a") as f:
-                f.write("\n" + str(message.channel.id))
-                
-            await message.channel.send("Added.")
+            with open("data/update_channels.txt", "r+") as f:
+                f.seek(0)
+                update_channels = [int(line) for line in f.read().splitlines()]
+
+                if message.channel.id in update_channels:
+                    await message.channel.send("Channel already in list.")
+
+                else:
+                    update_channels.append(message.channel.id)
+                    for channel in update_channels:
+                            f.write(f"{channel}\n")
+
+                    await message.channel.send("Added.")
 
         #removes a channel from the update list
         if message.content.startswith("$remove"):
             
             #gets the update list
-            with open("data/update_channels.txt", "r") as f:
-                update_channels = f.read().splitlines()
-                
+            with open("data/update_channels.txt", "r+") as f:
+                f.seek(0)
+                update_channels = [int(line) for line in f.read().splitlines()]
+
                 if message.channel.id not in update_channels:
                     await message.channel.send("Channel not in list.")
-                    
+
                 # overwrites the file with the new list
                 else:
-                    
                     update_channels.remove(message.channel.id)
-                    
-                    with open("data/update_channels.txt", "w") as f:
-                        for channel in update_channels:
-                            f.write(channel + "\n")
-                            
+                    f.seek(0)
+                    f.truncate()
+                    for channel in update_channels:
+                            f.write(f"{channel}\n")
+
                     await message.channel.send("Removed.")
 
         #kills program
@@ -110,7 +119,8 @@ async def daily_update():
     
     # reads the channels to update from a file WITHOUT \N
     with open("data/update_channels.txt", "r") as f:
-        update_channels = f.read().splitlines()
+        f.seek(0)
+        update_channels = [int(line) for line in f.read().splitlines()]
         
     for channel in update_channels:
         await client.get_channel(channel).send("**Daily Update:**\n" + find_winner())
