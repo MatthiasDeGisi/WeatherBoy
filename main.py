@@ -67,6 +67,7 @@ async def on_message(message):
         await message.channel.send(find_winner())
 
     # TODO: add a way to customize time
+    #FIXME issue with reading and shit
     if message.author.id == 391343816155725824:
         
         # adds the channel to the update list
