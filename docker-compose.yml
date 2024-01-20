@@ -1,0 +1,9 @@
+version: "3.8"
+services:
+  main:
+    build: .
+    container_name: weatherboy
+    volumes:
+      - /WeatherBoyData:/app/data
+    environment:
+      - TOKEN
