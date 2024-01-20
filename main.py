@@ -11,34 +11,34 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 def find_winner():
     """Find the winner of the gold star badge.
 
     Returns:
         str: The winner of the gold star badge.
     """
-    
+
     print("Requesting data...")
-    
-    
-    response = requests.get('https://www.wunderground.com/dashboard/pws/IGABRI5')
+
+    response = requests.get("https://www.wunderground.com/dashboard/pws/IGABRI5")
     darren = response.text
-    
-    response = requests.get('https://www.wunderground.com/dashboard/pws/IEXTEN1')
+
+    response = requests.get("https://www.wunderground.com/dashboard/pws/IEXTEN1")
     brandon = response.text
 
     if "goldstar" in darren and "goldstar" in brandon:
         print("Both have the badge!")
         return "Both have the badge!"
-    
+
     elif "goldstar" in darren:
         print("Only Darren has the badge!")
         return "Only Darren has the badge!"
-    
+
     elif "goldstar" in brandon:
         print("Only Brandon has the badge!")
         return "Only Brandon has the badge!"
-    
+
     else:
         print("Neither have the badge :(")
         return "Neither have the badge :("
@@ -67,7 +67,7 @@ async def on_message(message):
     if message.content.startswith("$forecast"):
         await message.channel.send(find_winner())
 
-    #TODO: add a wat to customize time
+    # TODO: add a way to customize time
     if message.author.id == 391343816155725824:
         if message.content.startswith("$add"):
             update_channels.append(message.channel.id)
@@ -76,7 +76,7 @@ async def on_message(message):
         if message.content.startswith("$remove"):
             update_channels.remove(message.channel.id)
             await message.channel.send("Removed.")
-        
+
         if message.content.startswith("$order66"):
             await client.close()
 
@@ -85,7 +85,7 @@ async def on_message(message):
 @tasks.loop(time=datetime.time(hour=17, minute=0))
 async def daily_update():
     for channel in update_channels:
-        await client.get_channel(channel).send("Daily Update:\n" + find_winner())
+        await client.get_channel(channel).send("**Daily Update:**\n" + find_winner())
 
 
 client.run(os.getenv("TOKEN"))
