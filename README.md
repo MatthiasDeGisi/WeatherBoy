@@ -28,7 +28,7 @@ Requests is required. To install, run `pip install requests`
 **Docker**
 
 A directory called /WeatherBoyData should be created on the server, which is used to hold persistent information for the container.
-If using Windows (oof), a directory called C:\WeatherBoyData can be created, and line 7 of docker-compose.yml should be modified to be `- "C:/WeatherBoyData:/app/data"`
+If using Windows (oof), this might not work.
 
 To build the container: run `docker compose up -d --build`
 
