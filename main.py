@@ -69,14 +69,37 @@ async def on_message(message):
 
     # TODO: add a way to customize time
     if message.author.id == 391343816155725824:
+        
+        # adds the channel to the update list
         if message.content.startswith("$add"):
-            update_channels.append(message.channel.id)
+            
+            with open("update_channels.txt", "a") as f:
+                f.write("\n" + str(message.channel.id))
+                
             await message.channel.send("Added.")
 
+        #removes a channel from the update list
         if message.content.startswith("$remove"):
-            update_channels.remove(message.channel.id)
-            await message.channel.send("Removed.")
+            
+            #gets the update list
+            with open("update_channels.txt", "r") as f:
+                update_channels = f.read().splitlines()
+                
+                if message.channel.id not in update_channels:
+                    await message.channel.send("Channel not in list.")
+                    
+                # overwrites the file with the new list
+                else:
+                    
+                    update_channels.remove(message.channel.id)
+                    
+                    with open("update_channels.txt", "w") as f:
+                        for channel in update_channels:
+                            f.write(channel + "\n")
+                            
+                    await message.channel.send("Removed.")
 
+        #kills program
         if message.content.startswith("$order66"):
             await client.close()
 
@@ -84,6 +107,11 @@ async def on_message(message):
 # runs at 9AM everyday
 @tasks.loop(time=datetime.time(hour=17, minute=0))
 async def daily_update():
+    
+    # reads the channels to update from a file WITHOUT \N
+    with open("update_channels.txt", "r") as f:
+        update_channels = f.read().splitlines()
+        
     for channel in update_channels:
         await client.get_channel(channel).send("**Daily Update:**\n" + find_winner())
 
