@@ -73,7 +73,7 @@ async def on_message(message):
         # adds the channel to the update list
         if message.content.startswith("$add"):
             
-            with open("update_channels.txt", "a") as f:
+            with open("data/update_channels.txt", "a") as f:
                 f.write("\n" + str(message.channel.id))
                 
             await message.channel.send("Added.")
@@ -82,7 +82,7 @@ async def on_message(message):
         if message.content.startswith("$remove"):
             
             #gets the update list
-            with open("update_channels.txt", "r") as f:
+            with open("data/update_channels.txt", "r") as f:
                 update_channels = f.read().splitlines()
                 
                 if message.channel.id not in update_channels:
@@ -93,7 +93,7 @@ async def on_message(message):
                     
                     update_channels.remove(message.channel.id)
                     
-                    with open("update_channels.txt", "w") as f:
+                    with open("data/update_channels.txt", "w") as f:
                         for channel in update_channels:
                             f.write(channel + "\n")
                             
@@ -109,7 +109,7 @@ async def on_message(message):
 async def daily_update():
     
     # reads the channels to update from a file WITHOUT \N
-    with open("update_channels.txt", "r") as f:
+    with open("data/update_channels.txt", "r") as f:
         update_channels = f.read().splitlines()
         
     for channel in update_channels:
