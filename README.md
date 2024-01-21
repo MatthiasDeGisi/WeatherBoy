@@ -1,9 +1,10 @@
 # WeatherBoy
-WeatherBoy is a Discord bot that serves one purpose: fueling a feud between two weather station enthusiasts.
+WeatherBoy is a Discord bot that serves one purpose: fueling a feud between two weather station enthusiasts. Invite the bot [here](https://discord.com/api/oauth2/authorize?client_id=1197038110417109122&permissions=414464862272&scope=bot).
 ## Requirements
-The server that this bot runs on requires Python 3.11 and cURL.
+The server that this bot runs on requires Python 3.11 and Docker is recommended. If windows is being used, change line 7 of docker-compose.yml to say `- C:\WeatherBoyData:/app/data` and create a folder to go along with it.
 
-A virtual environment is recommended. To install, run:
+
+For development, a virtual environment is recommended. To install, run:
 `pip install virtualenv`
 
 To set up the virtual environment, run
@@ -15,9 +16,23 @@ To activate the environment, run `env/Scripts/activate.bat` in CMD, or `env/Scri
 
 **Python packages:**
 
+
+A requirements.txt file is provided. To use it, run `pip -r requirements.txt`.
+
+In case you don't want to use the requirements.txt file, the requirements are listed below: 
+
 Discord.py is required. To install, run `pip install discord.py`
 
 Dotenv is required. To install, run `pip install python-dotenv`
 
-## Note to Self
-This requires a .env file with a token to work. For security reasons, this is not included in the repo.
+Requests is required. To install, run `pip install requests`
+
+**Docker**
+
+A directory called /WeatherBoyData should be created on the server, which is used to hold persistent information for the container.
+If using Windows (oof), this might not work.
+
+To build the container: run `docker compose up -d --build`
+
+**Token**
+The Discord token must be an environment variable, either as a .env file or through GitHub Actions Secrets.
