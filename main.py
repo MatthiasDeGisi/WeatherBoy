@@ -43,11 +43,11 @@ def find_winner():
         print("Neither have the badge :(")
         return "Neither have the badge :("
 
+
 # Check if the update file exists
-if not os.path.exists('data/update_channels.txt'):
-    
+if not os.path.exists("data/update_channels.txt"):
     # If it doesn't exist, create it
-    with open('data/update_channels.txt', 'w') as f:
+    with open("data/update_channels.txt", "w") as f:
         pass
 
 # sets up client
@@ -75,10 +75,8 @@ async def on_message(message):
 
     # TODO: add a way to customize time
     if message.author.id == 391343816155725824:
-        
         # adds the channel to the update list
         if message.content.startswith("$add"):
-            
             with open("data/update_channels.txt", "r+") as f:
                 f.seek(0)
                 update_channels = [int(line) for line in f.read().splitlines()]
@@ -90,15 +88,14 @@ async def on_message(message):
                 else:
                     update_channels.append(message.channel.id)
                     for channel in update_channels:
-                            f.write(f"{channel}\n")
+                        f.write(f"{channel}\n")
 
                     await message.channel.send("Added to daily updates list.")
                     print(f"Channel {message.channel.id} added to daily updates list.")
 
-        #removes a channel from the update list
+        # removes a channel from the update list
         if message.content.startswith("$remove"):
-            
-            #gets the update list
+            # gets the update list
             with open("data/update_channels.txt", "r+") as f:
                 f.seek(0)
                 update_channels = [int(line) for line in f.read().splitlines()]
@@ -113,12 +110,14 @@ async def on_message(message):
                     f.seek(0)
                     f.truncate()
                     for channel in update_channels:
-                            f.write(f"{channel}\n")
+                        f.write(f"{channel}\n")
 
                     await message.channel.send("Removed from daily updates list.")
-                    print(f"Channel {message.channel.id} removed from daily updates list.")
+                    print(
+                        f"Channel {message.channel.id} removed from daily updates list."
+                    )
 
-        #kills program
+        # kills program
         if message.content.startswith("$order66"):
             await client.close()
 
@@ -126,17 +125,17 @@ async def on_message(message):
 # runs at 9AM everyday
 @tasks.loop(time=datetime.time(hour=17, minute=0))
 async def daily_update():
-    
     # reads the channels to update from a file
     with open("data/update_channels.txt", "r") as f:
         f.seek(0)
         update_channels = [int(line) for line in f.read().splitlines()]
-    
+
     print("Sending daily update...")
     for channel in update_channels:
         await client.get_channel(channel).send("**Daily Update:**\n" + find_winner())
         print(f"Sent daily update to channel {channel}.")
-        
+
     print("Daily update finished!")
+
 
 client.run(os.getenv("TOKEN"))
