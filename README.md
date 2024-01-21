@@ -3,6 +3,7 @@ WeatherBoy is a Discord bot that serves one purpose: fueling a feud between two 
 ## Requirements
 The server that this bot runs on requires Python 3.11 and Docker is recommended. If windows is being used, change line 7 of docker-compose.yml to say `- C:\WeatherBoyData:/app/data` and create a folder to go along with it.
 
+
 For development, a virtual environment is recommended. To install, run:
 `pip install virtualenv`
 
@@ -14,6 +15,7 @@ To activate the environment, run `env/Scripts/activate.bat` in CMD, or `env/Scri
 [Alternatively, VSCode has a built in feature for virtual environments.](https://code.visualstudio.com/docs/python/environments)
 
 **Python packages:**
+
 
 A requirements.txt file is provided. To use it, run `pip -r requirements.txt`.
 
