@@ -1,8 +1,7 @@
 # WeatherBoy
 WeatherBoy is a Discord bot that serves one purpose: fueling a feud between two weather station enthusiasts. Invite the bot [here](https://discord.com/api/oauth2/authorize?client_id=1197038110417109122&permissions=414464862272&scope=bot).
 ## Requirements
-The server that this bot runs on requires Python 3.11 and Docker is recommended. If using Docker, I have not been successful getting it to work on Windows unless the `volumes` section is removed from docker-compose.yml.
-
+The server that this bot runs on requires Python 3.11 and Docker is recommended. If windows is being used, change line 7 of docker-compose.yml to say `- C:\WeatherBoyData:/app/data` and create a folder to go along with it.
 
 For development, a virtual environment is recommended. To install, run:
 `pip install virtualenv`
@@ -32,3 +31,6 @@ A directory called /WeatherBoyData should be created on the server, which is use
 If using Windows (oof), this might not work.
 
 To build the container: run `docker compose up -d --build`
+
+**Token**
+The Discord token must be an environment variable, either as a .env file or through GitHub Actions Secrets.
