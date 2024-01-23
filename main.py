@@ -28,17 +28,23 @@ def find_winner():
     response = requests.get("https://www.wunderground.com/dashboard/pws/IEXTEN1")
     brandon = response.text
 
+    current_time = int(time.time())
+
+    with open ("data/time_tracker.txt", "r") as time_tracker_file:
+        time_tracker_file.seek(0)
+        time_tracker = [int(line) for line in time_tracker_file.read().splitlines()]
+    
     if "goldstar" in darren and "goldstar" in brandon:
         print("Both have the badge!")
         return "Both have the badge!"
 
     elif "goldstar" in darren:
-        print("Only Darren has the badge!")
-        return "Only Darren has the badge!"
+        print(f"Only Darren has the badge! He has had it for {current_time - time_tracker[0]} seconds. :star:")
+        return f"Only Darren has the badge! He has had it for {current_time - time_tracker[0]} seconds. :star:"
 
     elif "goldstar" in brandon:
-        print("Only Brandon has the badge!")
-        return "Only Brandon has the badge!"
+        print(f"Only Brandon has the badge! He has had it for {current_time - time_tracker[1]} seconds. :star:")
+        return f"Only Brandon has the badge! He has had it for {current_time - time_tracker[1]} seconds. :star:"
 
     else:
         print("Neither have the badge :(")
@@ -55,7 +61,6 @@ if not os.path.exists("data/time_tracker.txt"):
     # If it doesn't exist, create it
     with open("data/time_tracker.txt", "w") as time_tracker_file:
         for i in range(0, 2):
-            time_tracker_file.write("0\n")
             time_tracker_file.write(f"{int(time.time())}\n")
     
 # sets up client
@@ -132,8 +137,22 @@ async def on_message(message):
 
 @tasks.loop(minutes=5)
 async def time_tracker():
+    
+    winner = find_winner()
+    
+    current_time = int(time.time())
+    
     with open ("data/time_tracker.txt", "r+") as time_tracker_file:
         time_tracker_file.seek(0)
+        time_tracker = [int(line) for line in time_tracker_file.read().splitlines()]
+        
+        # if darren has the badge
+        if winner == "Only Brandon has the badge!":
+            time_tracker[0] = current_time
+        
+        # if brandon has the badge
+        if winner == "Only Darren has the badge!":
+            time_tracker[1] = current_time
 
 # runs at 9AM everyday
 @tasks.loop(time=datetime.time(hour=17, minute=0))
