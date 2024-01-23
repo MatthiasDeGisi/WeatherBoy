@@ -6,12 +6,23 @@ import time
 from discord.ext import tasks
 import datetime
 
-# TODO: set up github actions workflow to remove .env file
 # for .env file
 from dotenv import load_dotenv
 
 load_dotenv()
 
+def update_time_tracker_file(winner):
+    with open ("data/time_tracker.txt", "r+") as time_tracker_file:
+        time_tracker_file.seek(0)
+        time_tracker = [int(line) for line in time_tracker_file.read().splitlines()]
+        
+        # if darren has the badge
+        if winner == "Only Brandon has the badge!":
+            time_tracker[0] = int(time.time())
+    
+        # if brandon has the badge
+        if winner == "Only Darren has the badge!":
+            time_tracker[1] = int(time.time())
 
 def find_winner():
     """Find the winner of the gold star badge.
@@ -74,7 +85,7 @@ update_channels = []
 @client.event
 async def on_ready():
     daily_update.start()
-    time_tracker.start()
+    update_time_tracker.start()
     print("We have logged in as {0.user}".format(client))
 
 
@@ -136,23 +147,27 @@ async def on_message(message):
             await client.close()
 
 @tasks.loop(minutes=5)
-async def time_tracker():
-    
-    winner = find_winner()
-    
+async def update_time_tracker():
     current_time = int(time.time())
-    
+    winner = find_winner()
     with open ("data/time_tracker.txt", "r+") as time_tracker_file:
         time_tracker_file.seek(0)
         time_tracker = [int(line) for line in time_tracker_file.read().splitlines()]
         
         # if darren has the badge
-        if winner == "Only Brandon has the badge!":
+        if "Only Brandon" in winner:
             time_tracker[0] = current_time
-        
+    
         # if brandon has the badge
-        if winner == "Only Darren has the badge!":
+        if "Only Darren" in winner:
             time_tracker[1] = current_time
+
+        time_tracker_file.seek(0)
+        time_tracker_file.truncate()
+        for item in time_tracker:
+            time_tracker_file.write(f"{item}\n")
+            
+    print("Updated time tracker file.")
 
 # runs at 9AM everyday
 @tasks.loop(time=datetime.time(hour=17, minute=0))
