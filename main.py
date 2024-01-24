@@ -40,14 +40,16 @@ def update_time_tracker_file(winner):
         time_tracker_file.seek(0)
         time_tracker = [int(line) for line in time_tracker_file.read().splitlines()]
 
+        current_time = int(time.time())
+
         match winner:
             case 0:  # neither have the badge
-                time_tracker[0] = int(time.time())
-                time_tracker[1] = int(time.time())
+                time_tracker[0] = current_time
+                time_tracker[1] = current_time
             case 1:  # darren has the badge
-                time_tracker[1] = int(time.time())
+                time_tracker[1] = current_time
             case 2:  # brandon has the badge
-                time_tracker[0] = int(time.time())
+                time_tracker[0] = current_time
             case 3:  # both have the badge
                 pass
 
@@ -138,8 +140,6 @@ intents.message_content = True
 client = discord.Client(intents=intents)
 daily_channels = []
 
-client.run(os.getenv("TOKEN"))
-
 
 # runs when the bot is ready
 @client.event
@@ -201,3 +201,6 @@ async def daily_update():
         print(f"Sent daily update to channel {channel}.")
 
     print("Daily update finished!")
+
+
+client.run(os.getenv("TOKEN"))
