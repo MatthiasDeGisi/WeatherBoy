@@ -7,3 +7,5 @@ docker-compose.yml
 Dockerfile
 LICENSE
 README.md
+test.py
+todo.txt

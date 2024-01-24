@@ -1,0 +1,2 @@
+- Track how long darren and brandon have had the badge
+- reformat the message

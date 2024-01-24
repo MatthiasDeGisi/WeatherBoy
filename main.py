@@ -1,15 +1,14 @@
 import discord
 import os
 import requests
+import time
 
 from discord.ext import tasks
 import datetime
+from datetime import timedelta
 
-# TODO: set up github actions workflow to remove .env file
 # for .env file
 from dotenv import load_dotenv
-
-load_dotenv()
 
 
 def find_winner():
@@ -19,8 +18,6 @@ def find_winner():
         str: The winner of the gold star badge.
     """
 
-    print("Requesting data...")
-
     response = requests.get("https://www.wunderground.com/dashboard/pws/IGABRI5")
     darren = response.text
 
@@ -28,39 +25,139 @@ def find_winner():
     brandon = response.text
 
     if "goldstar" in darren and "goldstar" in brandon:
-        print("Both have the badge!")
-        return "Both have the badge!"
-
+        return 3
     elif "goldstar" in darren:
-        print("Only Darren has the badge!")
-        return "Only Darren has the badge!"
-
+        return 1
     elif "goldstar" in brandon:
-        print("Only Brandon has the badge!")
-        return "Only Brandon has the badge!"
-
+        return 2
     else:
-        print("Neither have the badge :(")
-        return "Neither have the badge :("
+        return 0
 
+
+def update_time_tracker_file(winner):
+    with open("data/time_tracker.txt", "r+") as time_tracker_file:
+        time_tracker_file.seek(0)
+        time_tracker = [int(line) for line in time_tracker_file.read().splitlines()]
+
+        current_time = int(time.time())
+
+        match winner:
+            case 0:  # neither have the badge
+                time_tracker[0] = current_time
+                time_tracker[1] = current_time
+            case 1:  # darren has the badge
+                time_tracker[1] = current_time
+            case 2:  # brandon has the badge
+                time_tracker[0] = current_time
+            case 3:  # both have the badge
+                pass
+
+        time_tracker_file.seek(0)
+        time_tracker_file.truncate()
+        for item in time_tracker:
+            time_tracker_file.write(f"{item}\n")
+
+
+def forecast_message(winner):
+    current_time = int(time.time())
+
+    with open("data/time_tracker.txt", "r") as time_tracker_file:
+        time_tracker_file.seek(0)
+        time_tracker = [int(line) for line in time_tracker_file.read().splitlines()]
+
+    match winner:
+        case 0:
+            return "Neither have the badge :("
+        case 1:
+            weeks, days, hours, minutes, seconds = convert_unix_time(
+                current_time - time_tracker[0]
+            )
+            winner_name = "Darren"
+        case 2:
+            weeks, days, hours, minutes, seconds = convert_unix_time(
+                current_time - time_tracker[1]
+            )
+            winner_name = "Brandon"
+        case 3:
+            both_string = "Both have the badge!\n"
+            return both_string + forecast_message(1) + "\n" + forecast_message(2)
+    if weeks:
+        return f"Only **{winner_name}** has the badge!\nHe has had the badge for {weeks} weeks, {days} days, {hours} hours, {minutes} minutes, and {seconds} seconds."
+    else:
+        return f"Only **{winner_name}** has the badge!\nHe has had the badge for {days} days, {hours} hours, {minutes} minutes, and {seconds} seconds."
+
+
+def convert_unix_time(unix_time):
+    # Convert Unix time to timedelta
+    td = timedelta(seconds=unix_time)
+
+    # Calculate time components
+    weeks, days = divmod(td.days, 7)
+    hours, remainder = divmod(td.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    return weeks, days, hours, minutes, seconds
+
+
+def add_channel(message):
+    with open("data/daily_channels.txt", "r+") as daily_channels_file:
+        daily_channels_file.seek(0)
+        daily_channels = [int(line) for line in daily_channels_file.read().splitlines()]
+
+        if message.channel.id not in daily_channels:
+            daily_channels.append(message.channel.id)
+            for channel in daily_channels:
+                daily_channels_file.write(f"{channel}\n")
+
+            return "Added to daily updates list."
+
+        else:
+            return "Channel already in daily updates list."
+
+
+def remove_channel(message):
+    with open("data/daily_channels.txt", "r+") as daily_channels_file:
+        daily_channels_file.seek(0)
+        daily_channels = [int(line) for line in daily_channels_file.read().splitlines()]
+
+        if message.channel.id in daily_channels:
+            daily_channels.remove(message.channel.id)
+            daily_channels_file.seek(0)
+            daily_channels_file.truncate()
+            for channel in daily_channels:
+                daily_channels_file.write(f"{channel}\n")
+
+            return "Removed from daily updates list."
+
+        # overwrites the file with the new list
+        else:
+            return "Channel not in daily updates list."
+
+
+load_dotenv()
 
 # Check if the update file exists
-if not os.path.exists("data/update_channels.txt"):
-    # If it doesn't exist, create it
-    with open("data/update_channels.txt", "w") as f:
+if not os.path.exists("data/daily_channels.txt"):
+    with open("data/daily_channels.txt", "w") as daily_channels_file:
         pass
+# check if the time tracker file exists
+if not os.path.exists("data/time_tracker.txt"):
+    with open("data/time_tracker.txt", "w") as time_tracker_file:
+        for i in range(0, 2):
+            time_tracker_file.write(f"{int(time.time())}\n")
 
 # sets up client
 intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
-update_channels = []
+daily_channels = []
 
 
 # runs when the bot is ready
 @client.event
 async def on_ready():
     daily_update.start()
+    update_time_tracker.start()
     print("We have logged in as {0.user}".format(client))
 
 
@@ -71,71 +168,45 @@ async def on_message(message):
         return
 
     if message.content.startswith("$forecast"):
-        await message.channel.send(find_winner())
+        winner = find_winner()
+        update_time_tracker_file(winner)
+        await message.channel.send(forecast_message(winner))
 
     # TODO: add a way to customize time
     if message.author.id == 391343816155725824:
         # adds the channel to the update list
         if message.content.startswith("$add"):
-            with open("data/update_channels.txt", "r+") as f:
-                f.seek(0)
-                update_channels = [int(line) for line in f.read().splitlines()]
-
-                if message.channel.id in update_channels:
-                    await message.channel.send("Channel already in daily updates list.")
-                    print("Channel already in daily updates list.")
-
-                else:
-                    update_channels.append(message.channel.id)
-                    for channel in update_channels:
-                        f.write(f"{channel}\n")
-
-                    await message.channel.send("Added to daily updates list.")
-                    print(f"Channel {message.channel.id} added to daily updates list.")
+            await message.channel.send(add_channel(message))
 
         # removes a channel from the update list
         if message.content.startswith("$remove"):
-            # gets the update list
-            with open("data/update_channels.txt", "r+") as f:
-                f.seek(0)
-                update_channels = [int(line) for line in f.read().splitlines()]
-
-                if message.channel.id not in update_channels:
-                    await message.channel.send("Channel not in daily updates list.")
-                    print("Channel not in daily updates list.")
-
-                # overwrites the file with the new list
-                else:
-                    update_channels.remove(message.channel.id)
-                    f.seek(0)
-                    f.truncate()
-                    for channel in update_channels:
-                        f.write(f"{channel}\n")
-
-                    await message.channel.send("Removed from daily updates list.")
-                    print(
-                        f"Channel {message.channel.id} removed from daily updates list."
-                    )
+            await message.channel.send(remove_channel(message))
 
         # kills program
         if message.content.startswith("$order66"):
             await client.close()
 
 
+@tasks.loop(minutes=5)
+async def update_time_tracker():
+    update_time_tracker_file(find_winner())
+
+
 # runs at 9AM everyday
 @tasks.loop(time=datetime.time(hour=17, minute=0))
 async def daily_update():
     # reads the channels to update from a file
-    with open("data/update_channels.txt", "r") as f:
+    with open("data/daily_channels.txt", "r") as f:
         f.seek(0)
-        update_channels = [int(line) for line in f.read().splitlines()]
+        daily_channels = [int(line) for line in f.read().splitlines()]
 
-    print("Sending daily update...")
-    for channel in update_channels:
-        await client.get_channel(channel).send("**Daily Update:**\n" + find_winner())
-        print(f"Sent daily update to channel {channel}.")
+    winner = find_winner()
+    update_time_tracker_file(winner)
 
-    print("Daily update finished!")
+    for channel in daily_channels:
+        await client.get_channel(channel).send(
+            "**Daily Update:**\n" + forecast_message(winner)
+        )
 
 
 client.run(os.getenv("TOKEN"))

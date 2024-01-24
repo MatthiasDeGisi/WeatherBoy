@@ -36,3 +36,6 @@ To build the container: run `docker compose up -d --build`
 
 **Token**
 The Discord token must be an environment variable, either as a .env file or through GitHub Actions Secrets.
+
+**Doppelganger**
+https://discord.com/api/oauth2/authorize?client_id=1199146110615294052&permissions=1084479765568&scope=bot 
