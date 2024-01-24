@@ -5,6 +5,7 @@ import time
 
 from discord.ext import tasks
 import datetime
+from datetime import timedelta
 
 # for .env file
 from dotenv import load_dotenv
@@ -16,8 +17,6 @@ def find_winner():
     Returns:
         str: The winner of the gold star badge.
     """
-
-    print("Requesting data...")
 
     response = requests.get("https://www.wunderground.com/dashboard/pws/IGABRI5")
     darren = response.text
@@ -70,11 +69,34 @@ def forecast_message(winner):
         case 0:
             return "Neither have the badge :("
         case 1:
-            return f"Only Darren has the badge! He has had it for {current_time - time_tracker[0]} seconds. :star:"
+            weeks, days, hours, minutes, seconds = convert_unix_time(
+                current_time - time_tracker[0]
+            )
+            winner_name = "Darren"
         case 2:
-            return f"Only Brandon has the badge! He has had it for {current_time - time_tracker[1]} seconds. :star:"
+            weeks, days, hours, minutes, seconds = convert_unix_time(
+                current_time - time_tracker[1]
+            )
+            winner_name = "Brandon"
         case 3:
-            return "Both have the badge!"
+            both_string = "Both have the badge!\n"
+            return both_string + forecast_message(1) + "\n" + forecast_message(2)
+    if weeks:
+        return f"Only **{winner_name}** has the badge!\nHe has had the badge for {weeks} weeks, {days} days, {hours} hours, {minutes} minutes, and {seconds} seconds."
+    else:
+        return f"Only **{winner_name}** has the badge!\nHe has had the badge for {days} days, {hours} hours, {minutes} minutes, and {seconds} seconds."
+
+
+def convert_unix_time(unix_time):
+    # Convert Unix time to timedelta
+    td = timedelta(seconds=unix_time)
+
+    # Calculate time components
+    weeks, days = divmod(td.days, 7)
+    hours, remainder = divmod(td.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    return weeks, days, hours, minutes, seconds
 
 
 def add_channel(message):
@@ -169,6 +191,7 @@ async def on_message(message):
 async def update_time_tracker():
     update_time_tracker_file(find_winner())
 
+
 # runs at 9AM everyday
 @tasks.loop(time=datetime.time(hour=17, minute=0))
 async def daily_update():
@@ -184,5 +207,6 @@ async def daily_update():
         await client.get_channel(channel).send(
             "**Daily Update:**\n" + forecast_message(winner)
         )
+
 
 client.run(os.getenv("TOKEN"))
