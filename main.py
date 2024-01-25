@@ -82,9 +82,9 @@ def forecast_message(winner):
             both_string = "Both have the badge!\n"
             return both_string + forecast_message(1) + "\n" + forecast_message(2)
     if weeks:
-        return f"Only **{winner_name}** has the badge!\nHe has had the badge for {weeks} weeks, {days} days, {hours} hours, {minutes} minutes, and {seconds} seconds."
+        return f"Only **{winner_name}** has the badge!"#\nHe has had the badge for {weeks} weeks, {days} days, {hours} hours, {minutes} minutes, and {seconds} seconds."
     else:
-        return f"Only **{winner_name}** has the badge!\nHe has had the badge for {days} days, {hours} hours, {minutes} minutes, and {seconds} seconds."
+        return f"Only **{winner_name}** has the badge!"#\nHe has had the badge for {days} days, {hours} hours, {minutes} minutes, and {seconds} seconds."
 
 
 def convert_unix_time(unix_time):
