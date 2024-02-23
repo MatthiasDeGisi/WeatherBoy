@@ -11,11 +11,11 @@ from datetime import timedelta
 from dotenv import load_dotenv
 
 
-def change_manager(): #TODO: code this
-    #find winner
-    #determine if winner has changed
-    #if winner has changed, dont update but save winner status
-    #if winner has not changed, update time tracker?
+def change_manager():  # TODO: code this
+    # find winner
+    # determine if winner has changed
+    # if winner has changed, dont update but save winner status
+    # if winner has not changed, update time tracker?
     pass
 
 
@@ -43,13 +43,25 @@ def find_winner():
 
 
 def update_time_tracker_file(winner):
+    global winner_state
+    global winner_state_change_counter
+    
+    if winner_state != winner:
+        winner_state_change_counter += 1
+        if winner_state_change_counter >= 3:
+            winner_state = winner
+            winner_state_change_counter = 0
+    
+    elif winner_state == winner:
+        winner_state_change_counter = 0
+    
     with open("data/time_tracker.txt", "r+") as time_tracker_file:
         time_tracker_file.seek(0)
         time_tracker = [int(line) for line in time_tracker_file.read().splitlines()]
 
         current_time = int(time.time())
 
-        match winner:
+        match winner_state:
             case 0:  # neither have the badge
                 time_tracker[0] = current_time
                 time_tracker[1] = current_time
@@ -80,19 +92,30 @@ def forecast_message(winner):
             weeks, days, hours, minutes, seconds = convert_unix_time(
                 current_time - time_tracker[0]
             )
-            winner_name = "Darren"
+            winner_names = ["Darren"]
+            leading_string = "Only **Darren** has the badge!"
         case 2:
             weeks, days, hours, minutes, seconds = convert_unix_time(
                 current_time - time_tracker[1]
             )
-            winner_name = "Brandon"
+            winner_names = ["Brandon"]
+            leading_string = "Only **Brandon** has the badge!"
         case 3:
-            both_string = "Both have the badge!\n"
-            return both_string + forecast_message(1) + "\n" + forecast_message(2)
-    if weeks:
-        return f"Only **{winner_name}** has the badge!\nHe has had the badge for {weeks} weeks, {days} days, {hours} hours, {minutes} minutes, and {seconds} seconds."
-    else:
-        return f"Only **{winner_name}** has the badge!\nHe has had the badge for {days} days, {hours} hours, {minutes} minutes, and {seconds} seconds."
+            winner_names = ["Darren", "Brandon"]
+            leading_string = "**Both** have the badge!"
+
+    full_message = leading_string
+
+    for name in winner_names:
+        weeks, days, hours, minutes, seconds = convert_unix_time(
+            current_time - time_tracker[0 if name == "Darren" else 1]
+        )
+        if weeks:
+            full_message += f"\n{name} has had the badge for {weeks} weeks, {days} days, {hours} hours, {minutes} minutes, and {seconds} seconds."
+        else:
+            full_message += f"\n{name} has had the badge for {days} days, {hours} hours, {minutes} minutes, and {seconds} seconds."
+            
+    return full_message
 
 
 def convert_unix_time(unix_time):
@@ -159,7 +182,8 @@ intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 daily_channels = []
-
+winner_state = 0
+winner_state_change_counter = 0
 
 # runs when the bot is ready
 @client.event
