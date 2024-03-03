@@ -111,9 +111,9 @@ def forecast_message(winner):
             current_time - time_tracker[0 if name == "Darren" else 1]
         )
         if weeks:
-            full_message += f"\n{name} has had the badge for {weeks} weeks, {days} days, {hours} hours, {minutes} minutes, and {seconds} seconds."
+            full_message += f"\n{name} has had the badge for {weeks} week{"" if weeks == 1 else "s"}, {days} day{"" if days == 1 else "s"}, {hours} hours, {minutes} minutes, and {seconds} seconds."
         else:
-            full_message += f"\n{name} has had the badge for {days} days, {hours} hours, {minutes} minutes, and {seconds} seconds."
+            full_message += f"\n{name} has had the badge for {days} day{"" if days == 1 else "s"}, {hours} hours, {minutes} minutes, and {seconds} seconds."
             
     return full_message
 
