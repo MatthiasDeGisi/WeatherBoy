@@ -4,6 +4,6 @@ services:
     build: .
     container_name: weatherboy
     volumes:
-     - /WeatherBoyData:/app/data
+     - /WeatherBoyDoppelgangerData:/app/data
     environment:
       - TOKEN

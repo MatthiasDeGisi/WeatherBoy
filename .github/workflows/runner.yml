@@ -1,8 +1,8 @@
-name: WeatherBoy Docker Runner
+name: Docker Runner
 
 on:
   push:
-    branches: [ main ]
+    branches: [ Doppelganger ]
 
 jobs:
   run:
@@ -10,7 +10,10 @@ jobs:
     environment: production
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Doppelganger Branch
+        uses: actions/checkout@v3
+        with:
+          ref: Doppelganger
 
       - name: Run Container
         run: docker compose up -d --build
