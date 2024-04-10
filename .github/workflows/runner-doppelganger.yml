@@ -1,0 +1,24 @@
+name: Docker Runner
+
+on:
+  push:
+    branches: [ Doppelganger ]
+
+jobs:
+  run:
+    runs-on: self-hosted
+    environment: production
+
+    steps:
+      - name: Checkout Doppelganger Branch
+        uses: actions/checkout@v3
+        with:
+          ref: Doppelganger
+
+      - name: Run Container
+        run: docker compose up -d --build
+        env:
+          TOKEN: ${{ secrets.DOPPELGANGER_TOKEN }}
+
+      - name: Cleanup Unused Images
+        run: docker image prune -f
