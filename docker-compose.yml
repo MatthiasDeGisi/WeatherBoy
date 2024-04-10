@@ -6,4 +6,4 @@ services:
     volumes:
      - /WeatherBoyDoppelgangerData:/app/data
     environment:
-      - TOKEN
+      - DOPPELGANGER_TOKEN
