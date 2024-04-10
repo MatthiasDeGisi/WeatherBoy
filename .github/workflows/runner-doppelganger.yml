@@ -2,7 +2,7 @@ name: Docker Runner
 
 on:
   push:
-    branches: [ Doppelganger ]
+    branches: [ doppelganger ]
 
 jobs:
   run:
@@ -15,7 +15,7 @@ jobs:
       - name: Checkout Doppelganger Branch
         uses: actions/checkout@v3
         with:
-          ref: Doppelganger
+          ref: doppelganger
 
       - name: Run Container
         run: docker compose up -d --build
