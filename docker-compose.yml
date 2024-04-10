@@ -2,7 +2,7 @@ version: "3.8"
 services:
   main:
     build: .
-    container_name: weatherboy
+    container_name: weatherboy-dop
     volumes:
      - /WeatherBoyDoppelgangerData:/app/data
     environment:
