@@ -3,6 +3,7 @@ services:
   main:
     build: .
     container_name: weatherboy-dop
+    image: weatherboy-dop-image
     volumes:
      - /WeatherBoyDoppelgangerData:/app/data
     environment:
