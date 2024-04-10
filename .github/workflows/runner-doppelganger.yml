@@ -8,6 +8,8 @@ jobs:
   run:
     runs-on: self-hosted
     environment: production
+    labels:
+      - testing
 
     steps:
       - name: Checkout Doppelganger Branch
