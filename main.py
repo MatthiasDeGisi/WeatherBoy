@@ -225,7 +225,7 @@ async def update_time_tracker():
 
 
 # runs at 9AM everyday
-@tasks.loop(time=datetime.time(hour=17, minute=0))
+@tasks.loop(time=datetime.time(hour=16, minute=0))
 async def daily_update():
     # reads the channels to update from a file
     with open("data/daily_channels.txt", "r") as f:
