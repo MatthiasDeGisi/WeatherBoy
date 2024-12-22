@@ -76,7 +76,7 @@ class BadgeChecker:
             # which is then used for deletion.
             doc.reference.delete()
 
-    def check_badge_status(self) -> None:
+    def update_badge_status(self) -> None:
         """Check the badge status of all stations, and update the database with results."""
         
         pass
