@@ -2,6 +2,10 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 
+import requests
+
+from datetime import datetime
+
 
 class BadgeChecker:
     def __init__(self) -> None:
@@ -78,9 +82,27 @@ class BadgeChecker:
 
     def update_badge_status(self) -> None:
         """Check the badge status of all stations, and update the database with results."""
+        # Get the stations from the Firestore database.
+        stations = self.get_stations()
         
-        pass
-    
+        # Iterate through the stations and check their badge status.
+        for station in stations:
+            station_id = station["StationID"]
+            station_wunderground_url = self.wunderground_url_prefix + station_id
+            response = requests.get(station_wunderground_url).text
+            
+            if "goldstar" in response:
+                has_badge = True
+            else:
+                has_badge = False
+            
+            # Create a dictionary with the badge status and the timestamp.
+            data = {"HasBadge": has_badge, "TimeStamp": firestore.SERVER_TIMESTAMP}
+            # Get a reference to the Checks collection of the station.
+            doc_ref = self.db.collection("Stations").document(station["DocumentID"]).collection("Checks")
+            # Add the badge status dict as a document to the Checks collection.
+            doc_ref.add(data)
+            
     def get_badge_status(self) -> dict:
         """Get the badge status of all stations from the Firestore database.
 
@@ -92,5 +114,6 @@ class BadgeChecker:
 if __name__ == "__main__":
     checker = BadgeChecker()
     # checker.add_station("123", "John", "Doe")
-    print(checker.get_stations())
+    # print(checker.get_stations())
     # checker.remove_station("123")
+    checker.update_badge_status()
