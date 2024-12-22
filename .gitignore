@@ -2,3 +2,5 @@
 .env
 test.py
 data
+__pycache__
+*/__pycache__/
