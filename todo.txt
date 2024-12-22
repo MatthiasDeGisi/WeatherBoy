@@ -11,3 +11,6 @@ so basically check badge status and get badge status are different things. Get b
             "badge_time": 0H00M
         }
 }
+
+
+more like this [{id: xxx, fname: darren,etc}]
