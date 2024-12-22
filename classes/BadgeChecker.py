@@ -4,20 +4,23 @@ from firebase_admin import firestore
 
 
 class BadgeChecker:
-    def __init__(self):
-
+    def __init__(self) -> None:
+        """Initialize BadgeChecker object. Includes initializing Firestore database client and app.
+        """
         # Grabs the credentials from the keys folder and puts them in a special Firebase object.
         cred = credentials.Certificate("keys/weatherboy-firestore.json")
         # Initializes the app with the credentials. This app initialization is required for all Firebase services and gets reused throughout the program.
         self.app = firebase_admin.initialize_app(cred)
         # Initializes the database client.
         self.db = firestore.client()
+        
+        self.wunderground_url_prefix = "https://www.wunderground.com/dashboard/pws/"
 
-    def get_stations(self) -> dict:
-        """Get the station IDs and their corresponding owner names from the Firestore database.
+    def get_stations(self) -> list:
+        """Get the station IDs, their corresponding owner names, and document ID from the Firestore database.
 
         Returns:
-            dict: Dictionary with the station IDs as keys and the owner names as values.
+            list: List of dicts containing stations and their info.
         """
         # Reference to the Stations collection.
         stations_ref = self.db.collection("Stations")
@@ -25,16 +28,15 @@ class BadgeChecker:
         docs = stations_ref.stream()
 
         # Dictionary to store the station IDs and their corresponding owner names.
-        station_ids = {}
+        station_ids = []
 
         # Iterates through the documents and grabs the station ID from each one.
         for doc in docs:
             # Converts the document to a dictionary.
             dict = doc.to_dict()
-            owner_first_name = dict["OwnerFirstName"]
-            station_id = dict["StationID"]
-
-            station_ids[station_id] = owner_first_name
+            # Adds the document ID to the dictionary.
+            dict["DocumentID"] = doc.id
+            station_ids.append(dict)
 
         return station_ids
 
@@ -47,14 +49,14 @@ class BadgeChecker:
             station_id (str): The station ID.
             owner_first_name (str): The owner's first name.
             owner_last_name (str): The owner's last name.
-        """ ""
-        pass
+        """
         new_station = {
             "StationID": station_id,
             "OwnerFirstName": owner_first_name,
             "OwnerLastName": owner_last_name,
         }
 
+        # Adds the new station to the Stations collection.
         self.db.collection("Stations").add(new_station)
 
     def remove_station(self, station_id: str) -> None:
@@ -70,12 +72,25 @@ class BadgeChecker:
         docs = self.db.collection("Stations").where("StationID", "==", station_id).get()
         
         for doc in docs:
-            # I guess that with a document, you can call .reference to get the reference to the document which is then used for deletion.
+            # I guess that with a document, you can call .reference to get the reference to the document 
+            # which is then used for deletion.
             doc.reference.delete()
 
+    def check_badge_status(self) -> None:
+        """Check the badge status of all stations, and update the database with results."""
+        
+        pass
+    
+    def get_badge_status(self) -> dict:
+        """Get the badge status of all stations from the Firestore database.
 
+        Returns:
+            dict: A dict with all stations, which are each sub dicts with the station's badge status and time with badge.
+        """
+        pass
+        
 if __name__ == "__main__":
     checker = BadgeChecker()
-    checker.add_station("123", "John", "Doe")
+    # checker.add_station("123", "John", "Doe")
     print(checker.get_stations())
-    checker.remove_station("123")
+    # checker.remove_station("123")
