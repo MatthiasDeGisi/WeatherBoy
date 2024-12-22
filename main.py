@@ -11,19 +11,11 @@ from datetime import timedelta
 from dotenv import load_dotenv
 
 
-def change_manager():  # TODO: code this
-    # find winner
-    # determine if winner has changed
-    # if winner has changed, dont update but save winner status
-    # if winner has not changed, update time tracker?
-    pass
-
-
 def find_winner():
     """Find the winner of the gold star badge.
 
     Returns:
-        str: The winner of the gold star badge.
+        int: The winner of the gold star badge.
     """
 
     response = requests.get("https://www.wunderground.com/dashboard/pws/IGABRI5")
