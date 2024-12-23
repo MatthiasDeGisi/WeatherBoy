@@ -4,20 +4,18 @@ from firebase_admin import firestore
 
 import requests
 
-from datetime import datetime
-
 
 class BadgeChecker:
     def __init__(self) -> None:
-        """Initialize BadgeChecker object. Includes initializing Firestore database client and app.
-        """
+        """Initialize BadgeChecker object. Includes initializing Firestore database client and app."""
         # Grabs the credentials from the keys folder and puts them in a special Firebase object.
         cred = credentials.Certificate("keys/weatherboy-firestore.json")
-        # Initializes the app with the credentials. This app initialization is required for all Firebase services and gets reused throughout the program.
+        # Initializes the app with the credentials. This app initialization is required for all 
+        # Firebase services and gets reused throughout the program.
         self.app = firebase_admin.initialize_app(cred)
         # Initializes the database client.
         self.db = firestore.client()
-        
+
         self.wunderground_url_prefix = "https://www.wunderground.com/dashboard/pws/"
 
     def get_stations(self) -> list:
@@ -63,57 +61,129 @@ class BadgeChecker:
         # Adds the new station to the Stations collection.
         self.db.collection("Stations").add(new_station)
 
+        # TODO add code to put both a true and false check in the Checks collection for the new station ??
+
     def remove_station(self, station_id: str) -> None:
         """Remove a station from the Firestore database.
 
         Args:
             station_id (str): The station ID.
         """
-        # Grabs the document from the Stations collection that matches the station ID. Uses .get() 
+        # Grabs the document from the Stations collection that matches the station ID. Uses .get()
         # instead of .stream() because there should be very few documents.
         # I have to use .get() and retrieve the whole document instead of just the reference. This is
         # a limitation of the SDK.
         docs = self.db.collection("Stations").where("StationID", "==", station_id).get()
-        
+
         for doc in docs:
-            # I guess that with a document, you can call .reference to get the reference to the document 
+            # I guess that with a document, you can call .reference to get the reference to the document
             # which is then used for deletion.
             doc.reference.delete()
 
-    def update_badge_status(self) -> None:
-        """Check the badge status of all stations, and update the database with results."""
+    def get_badge_status(self) -> list:
+        """Get the badge status of all stations from the Wunderground website.
+
+        Returns:
+            list: A list of dicts with document IDs, each with sub dicts with 
+            the station's badge status and timestamp of the check.
+        """
         # Get the stations from the Firestore database.
         stations = self.get_stations()
-        
+
+        badge_statuses = []
+
         # Iterate through the stations and check their badge status.
         for station in stations:
             station_id = station["StationID"]
             station_wunderground_url = self.wunderground_url_prefix + station_id
             response = requests.get(station_wunderground_url).text
-            
+
             if "goldstar" in response:
                 has_badge = True
             else:
                 has_badge = False
-            
-            # Create a dictionary with the badge status and the timestamp.
-            data = {"HasBadge": has_badge, "TimeStamp": firestore.SERVER_TIMESTAMP}
-            # Get a reference to the Checks collection of the station.
-            doc_ref = self.db.collection("Stations").document(station["DocumentID"]).collection("Checks")
-            # Add the badge status dict as a document to the Checks collection.
-            doc_ref.add(data)
-            
-    def get_badge_status(self) -> dict:
+
+            # Create a dictionary with the document ID for the given station and the
+            # badge status (bool and timestamp in a sub dict).
+            data = {
+                "DocumentID": station["DocumentID"],
+                "CurrentStatus": {
+                    "HasBadge": has_badge,
+                    "TimeStamp": firestore.SERVER_TIMESTAMP,
+                },
+            }
+
+            # Append this instance of the dictionary to the list.
+            badge_statuses.append(data)
+
+        return badge_statuses
+
+    def write_badge_status(self, badge_statuses: list) -> None:
+        """Write the badge status of all stations passed in to the method to the Firestore database.
+
+        Args:
+            badge_statuses (list): A list of dicts with document IDs, each with sub dicts with 
+            the station's badge status and timestamp of the check.
+        """
+        # Iterate through the badge statuses in the passed in list
+        for station in badge_statuses:
+            # Reference to the Checks collection for the given station, using the ID contained in the badge status item.
+            doc_ref = (
+                self.db.collection("Stations")
+                .document(station["DocumentID"])
+                .collection("Checks")
+            )
+
+            # Add the badge status to the Checks collection.
+            doc_ref.add(station["CurrentStatus"])
+
+    def query_badge_status(self) -> dict: # FIXME WIP
         """Get the badge status of all stations from the Firestore database.
 
         Returns:
-            dict: A dict with all stations, which are each sub dicts with the station's badge status and time with badge.
+            list: A list with all stations, which are each sub dicts with the 
+            station's badge status and time with badge.
         """
+        stations = self.get_stations()
+        for station in stations:
+            collection_ref = (
+                self.db.collection("Stations")
+                .document(station["DocumentID"])
+                .collection("Checks")
+            )
+
+            query = (
+                collection_ref.where("HasBadge", "==", False)
+                .order_by("TimeStamp", direction=firestore.Query.DESCENDING)
+                .limit(1)
+            )
+            false_check_docs = query.get()
+            if false_check_docs:
+                false_check = false_check_docs[0].to_dict()
+
+            query = (
+                collection_ref.where("HasBadge", "==", True)
+                .order_by("TimeStamp", direction=firestore.Query.DESCENDING)
+                .limit(1)
+            )
+            true_check_docs = query.get()
+            if true_check_docs:
+                true_check = true_check_docs[0].to_dict()
+
+            print(false_check)
+            print(true_check)
+        # get false order by desc time limit 1
+        # get true order by desc time limit 1
+        # if true > false, then time == time between false and true and badge == true
+        # elif false > true, then badge == false
         pass
-        
+
+
 if __name__ == "__main__":
     checker = BadgeChecker()
     # checker.add_station("123", "John", "Doe")
     # print(checker.get_stations())
+    # checker.update_badge_status()
     # checker.remove_station("123")
-    checker.update_badge_status()
+    badge_status = checker.get_badge_status()
+    checker.write_badge_status(badge_status)
