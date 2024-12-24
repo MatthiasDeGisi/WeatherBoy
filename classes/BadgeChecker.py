@@ -59,9 +59,17 @@ class BadgeChecker:
         }
 
         # Adds the new station to the Stations collection.
-        self.db.collection("Stations").add(new_station)
+        doc_ref = self.db.collection("Stations").add(new_station) # can I get the ID from this? prolly not
 
-        # TODO add code to put both a true and false check in the Checks collection for the new station ??
+        # TODO add code to write an initial false check to the Checks collection
+
+        # collection_ref = (
+        #         self.db.collection("Stations")
+        #         .document(doc_ref.id)
+        #         .collection("Checks")
+        #     )
+
+
 
     def remove_station(self, station_id: str) -> None:
         """Remove a station from the Firestore database.
@@ -88,7 +96,7 @@ class BadgeChecker:
             the station's badge status and timestamp of the check.
         """
         # Get the stations from the Firestore database.
-        stations = self.get_stations()
+        stations = self.get_stations() # TODO pass this in instead
 
         badge_statuses = []
 
@@ -118,7 +126,7 @@ class BadgeChecker:
 
         return badge_statuses
 
-    def write_badge_status(self, badge_statuses: list) -> None:
+    def write_badge_status(self, badge_statuses: list) -> None: #FIXME should be just params not this stupid dict shit
         """Write the badge status of all stations passed in to the method to the Firestore database.
 
         Args:
@@ -144,8 +152,11 @@ class BadgeChecker:
             list: A list with all stations, which are each sub dicts with the 
             station's badge status and time with badge.
         """
-        stations = self.get_stations()
+        stations = self.get_stations() # TODO pass this in instead
         for station in stations:
+            false_check = None
+            true_check = None
+            
             collection_ref = (
                 self.db.collection("Stations")
                 .document(station["DocumentID"])
@@ -158,20 +169,31 @@ class BadgeChecker:
                 .limit(1)
             )
             false_check_docs = query.get()
-            if false_check_docs:
-                false_check = false_check_docs[0].to_dict()
-
+            
             query = (
                 collection_ref.where("HasBadge", "==", True)
                 .order_by("TimeStamp", direction=firestore.Query.DESCENDING)
                 .limit(1)
             )
             true_check_docs = query.get()
+            
+            if false_check_docs:
+                false_check = false_check_docs[0].to_dict()
+            
             if true_check_docs:
                 true_check = true_check_docs[0].to_dict()
 
-            print(false_check)
-            print(true_check)
+            if (true_check and false_check):
+                if true_check["TimeStamp"] > false_check["TimeStamp"]:
+                    time = true_check["TimeStamp"] - false_check["TimeStamp"]
+                    badge = True
+                    print(time, badge)
+                elif false_check["TimeStamp"] > true_check["TimeStamp"]:
+                    badge = False
+                    print(badge)
+            elif (not true_check) and (false_check):
+                badge = False
+                print(badge)
         # get false order by desc time limit 1
         # get true order by desc time limit 1
         # if true > false, then time == time between false and true and badge == true
@@ -185,5 +207,6 @@ if __name__ == "__main__":
     # print(checker.get_stations())
     # checker.update_badge_status()
     # checker.remove_station("123")
-    badge_status = checker.get_badge_status()
-    checker.write_badge_status(badge_status)
+    # badge_status = checker.get_badge_status()
+    # checker.write_badge_status(badge_status)
+    checker.query_badge_status()
