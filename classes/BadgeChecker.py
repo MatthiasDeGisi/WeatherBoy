@@ -10,7 +10,7 @@ class BadgeChecker:
         """Initialize BadgeChecker object. Includes initializing Firestore database client and app."""
         # Grabs the credentials from the keys folder and puts them in a special Firebase object.
         cred = credentials.Certificate("keys/weatherboy-firestore.json")
-        # Initializes the app with the credentials. This app initialization is required for all 
+        # Initializes the app with the credentials. This app initialization is required for all
         # Firebase services and gets reused throughout the program.
         self.app = firebase_admin.initialize_app(cred)
         # Initializes the database client.
@@ -59,17 +59,20 @@ class BadgeChecker:
         }
 
         # Adds the new station to the Stations collection.
-        doc_ref = self.db.collection("Stations").add(new_station) # can I get the ID from this? prolly not
-
-        # TODO add code to write an initial false check to the Checks collection
-
-        # collection_ref = (
-        #         self.db.collection("Stations")
-        #         .document(doc_ref.id)
-        #         .collection("Checks")
-        #     )
-
-
+        doc_ref = self.db.collection("Stations").add(new_station)
+        # This has to be a list because thats what the write_badge_status method expects.
+        badge_status = [
+            {
+                "DocumentID": doc_ref[
+                    1
+                ].id,  # Need to use [1] because doc_ref is a tuple with the document reference and the ID.
+                "CurrentStatus": {
+                    "HasBadge": False,
+                    "TimeStamp": firestore.SERVER_TIMESTAMP,
+                },
+            }
+        ]
+        self.write_badge_status(badge_status)
 
     def remove_station(self, station_id: str) -> None:
         """Remove a station from the Firestore database.
@@ -92,11 +95,11 @@ class BadgeChecker:
         """Get the badge status of all stations from the Wunderground website.
 
         Returns:
-            list: A list of dicts with document IDs, each with sub dicts with 
+            list: A list of dicts with document IDs, each with sub dicts with
             the station's badge status and timestamp of the check.
         """
         # Get the stations from the Firestore database.
-        stations = self.get_stations() # TODO pass this in instead
+        stations = self.get_stations()  # TODO pass this in instead
 
         badge_statuses = []
 
@@ -126,16 +129,17 @@ class BadgeChecker:
 
         return badge_statuses
 
-    def write_badge_status(self, badge_statuses: list) -> None: #FIXME should be just params not this stupid dict shit
+    def write_badge_status(self, badge_statuses: list) -> None:
         """Write the badge status of all stations passed in to the method to the Firestore database.
 
         Args:
-            badge_statuses (list): A list of dicts with document IDs, each with sub dicts with 
+            badge_statuses (list): A list of dicts with document IDs, each with sub dicts with
             the station's badge status and timestamp of the check.
         """
         # Iterate through the badge statuses in the passed in list
         for station in badge_statuses:
-            # Reference to the Checks collection for the given station, using the ID contained in the badge status item.
+            # Reference to the Checks collection for the given station, using the 
+            # ID contained in the badge status item.
             doc_ref = (
                 self.db.collection("Stations")
                 .document(station["DocumentID"])
@@ -145,60 +149,77 @@ class BadgeChecker:
             # Add the badge status to the Checks collection.
             doc_ref.add(station["CurrentStatus"])
 
-    def query_badge_status(self) -> dict: # FIXME WIP
-        """Get the badge status of all stations from the Firestore database.
+    def query_person_badge_status(self) -> dict:  # FIXME WIP
+        """Get the badge info of all stations from the Firestore database.
 
         Returns:
-            list: A list with all stations, which are each sub dicts with the 
-            station's badge status and time with badge.
+            list: A list with all stations, which are each sub dicts with the
+            station's badge info and optionally time with badge.
         """
-        stations = self.get_stations() # TODO pass this in instead
+        stations = self.get_stations()  # TODO pass this in instead
+        badge_info = []
+
         for station in stations:
-            false_check = None
+
+            # True check may not be there, so it is reset every iteration.
             true_check = None
             
+            # Dictionary to store the station's badge info.
+            station_badge_info = {}
+            station_badge_info["StationID"] = station["StationID"]
+            station_badge_info["OwnerFirstName"] = station["OwnerFirstName"]
+            
+            # Reference to the Checks collection for the given station.
             collection_ref = (
                 self.db.collection("Stations")
                 .document(station["DocumentID"])
                 .collection("Checks")
             )
 
+            # Query to get the most recent false check.
             query = (
                 collection_ref.where("HasBadge", "==", False)
                 .order_by("TimeStamp", direction=firestore.Query.DESCENDING)
                 .limit(1)
             )
             false_check_docs = query.get()
-            
+
+            # Query to get the most recent true check.
             query = (
                 collection_ref.where("HasBadge", "==", True)
                 .order_by("TimeStamp", direction=firestore.Query.DESCENDING)
                 .limit(1)
             )
             true_check_docs = query.get()
-            
-            if false_check_docs:
-                false_check = false_check_docs[0].to_dict()
-            
+
+            # There will always be a false check, but there may not be a true check.
+            # Have to use [0] because the query returns a list of documents, and
+            # I only expect one doc to be returned.
+            false_check = false_check_docs[0].to_dict()
             if true_check_docs:
                 true_check = true_check_docs[0].to_dict()
 
-            if (true_check and false_check):
+                # If the true check exists and is more recent than the false check (therefore
+                # they currently have the badge), calculate the time between the two.
                 if true_check["TimeStamp"] > false_check["TimeStamp"]:
-                    time = true_check["TimeStamp"] - false_check["TimeStamp"]
-                    badge = True
-                    print(time, badge)
+                    time_with_badge = true_check["TimeStamp"] - false_check["TimeStamp"]
+                    has_badge = True
+                    # Add the time with badge to the station's badge info.
+                    station_badge_info["TimeWithBadge"] = time_with_badge
+
+                # If the false check is more recent than the true check, they do not have the badge.
                 elif false_check["TimeStamp"] > true_check["TimeStamp"]:
-                    badge = False
-                    print(badge)
+                    has_badge = False
+
+            # If there is no true check, they do not have the badge.
             elif (not true_check) and (false_check):
-                badge = False
-                print(badge)
-        # get false order by desc time limit 1
-        # get true order by desc time limit 1
-        # if true > false, then time == time between false and true and badge == true
-        # elif false > true, then badge == false
-        pass
+                has_badge = False
+
+            # Add the station's badge info to the station's dict.
+            station_badge_info["HasBadge"] = has_badge
+            badge_info.append(station_badge_info)
+
+        return badge_info
 
 
 if __name__ == "__main__":
@@ -209,4 +230,4 @@ if __name__ == "__main__":
     # checker.remove_station("123")
     # badge_status = checker.get_badge_status()
     # checker.write_badge_status(badge_status)
-    checker.query_badge_status()
+    # print(checker.query_person_badge_status())
