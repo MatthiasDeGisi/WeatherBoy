@@ -91,8 +91,8 @@ class BadgeChecker:
             # which is then used for deletion.
             doc.reference.delete()
 
-    def get_badge_status(self) -> list:
-        """Get the badge status of all stations from the Wunderground website.
+    def scrape_badge_status(self) -> list:
+        """Scrape the badge status of all stations from the Wunderground website.
 
         Returns:
             list: A list of dicts with document IDs, each with sub dicts with
@@ -149,7 +149,7 @@ class BadgeChecker:
             # Add the badge status to the Checks collection.
             doc_ref.add(station["CurrentStatus"])
 
-    def query_person_badge_status(self) -> dict:  # FIXME WIP
+    def get_badge_status(self) -> dict:
         """Get the badge info of all stations from the Firestore database.
 
         Returns:
