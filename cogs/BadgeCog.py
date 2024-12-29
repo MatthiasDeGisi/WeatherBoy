@@ -1,16 +1,13 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
+from discord import tasks
 
 # Import custom badgechecker class.
 from classes import BadgeChecker
 
-# Importing the datetime modules for calculating the time.
-import datetime
-from datetime import timedelta
-
-class CheckBadge(commands.Cog):
-    def __init__(self, bot):
+class BadgeCog(commands.Cog):
+    def __init__(self, bot: commands.Bot):
         """Initializes the CheckBadge cog.
 
         Args:
@@ -20,7 +17,7 @@ class CheckBadge(commands.Cog):
         self.bot = bot # May not be needed
         
         # Create a new BadgeChecker object and daily update manager.
-        self.checker = BadgeChecker()
+        self.checker = BadgeChecker(bot.db)
 
     # This is a decorator that registers a new command under the bot. the .tree part
     # is needed for slash commands (app commands), as opposed to a regular prefix command.
@@ -65,7 +62,7 @@ class CheckBadge(commands.Cog):
         except Exception as e:
             await interaction.response.send_message(f"Error removing station: {e}")
     
-    @app_commands.command(name="forecast")
+    @app_commands.command(name="forecast") #TODO
     async def forecast(self, interaction: discord.Interaction):
         """Command to get the status of all the stations.
 
@@ -77,6 +74,10 @@ class CheckBadge(commands.Cog):
         except Exception as e:
             await interaction.response.send_message(f"Error: {e}")
 
+        @tasks.loop(minutes=20) #TODO
+        async def scrape_and_write_badge_status():
+            pass
+        
 async def setup(bot):
     """Setup function to add the cog as an extension. is used by the bot.load_extension() function. Must be async."""
-    await bot.add_cog(CheckBadge(bot))
+    await bot.add_cog(BadgeCog(bot))

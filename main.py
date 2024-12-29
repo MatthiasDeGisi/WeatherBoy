@@ -1,11 +1,15 @@
-# Importing the discord library, the commands module, and the tasks module from discord.ext.
+# Importing the discord library, the commands module.
 import discord
-from discord.ext import tasks
 from discord.ext import commands
 
 # Importing the os module and the load_dotenv function from the dotenv module.
 import os
 from dotenv import load_dotenv
+
+# Importing the required firebase modules.
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
 
 load_dotenv()
 
@@ -21,6 +25,13 @@ bot = commands.Bot(
     command_prefix="/", intents=intents, application_id=int(os.getenv("APPLICATION_ID"))
 )
 
+# Grabs the credentials from the keys folder and puts them in a special Firebase object.
+cred = credentials.Certificate("keys/weatherboy-firestore.json")
+# Initializes the app with the credentials. This app initialization is required for all
+# Firebase services and gets reused throughout the program.
+bot.app = firebase_admin.initialize_app(cred)
+# Initializes the database client.
+bot.db = firestore.client()
 
 @bot.event
 async def on_ready():

@@ -1,6 +1,1 @@
-maybe either make an attribute for the timer time so it can be set, or see if bot can be converted into oop so it can be set
-
-seems like a cog might be the way to do this. put all commands 
-into the cog, put my timers in the cog, and make the timer time
- an attribute in the cog. then can bind normally, and retrieve 
- with a method found here: https://discordpy.readthedocs.io/en/stable/ext/commands/cogs.html
+POtentially add admin checks to some of the commands.

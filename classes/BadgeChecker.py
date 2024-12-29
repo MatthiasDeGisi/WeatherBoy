@@ -6,15 +6,14 @@ import requests
 
 
 class BadgeChecker:
-    def __init__(self) -> None:
-        """Initialize BadgeChecker object. Includes initializing Firestore database client and app."""
-        # Grabs the credentials from the keys folder and puts them in a special Firebase object.
-        cred = credentials.Certificate("keys/weatherboy-firestore.json")
-        # Initializes the app with the credentials. This app initialization is required for all
-        # Firebase services and gets reused throughout the program.
-        self.app = firebase_admin.initialize_app(cred)
-        # Initializes the database client.
-        self.db = firestore.client()
+    def __init__(self, db: firestore.Client) -> None:
+        """Initialize the BadgeChecker object.
+
+        Args:
+            db (firestore.Client): A Firestore database client. Passed in so that there aren't multiple clients.
+        """
+        # Sets the firestore database client, which is passed in when the object is created.
+        self.db = db
 
         self.wunderground_url_prefix = "https://www.wunderground.com/dashboard/pws/"
 
@@ -42,7 +41,7 @@ class BadgeChecker:
 
         return station_ids
 
-    def add_station(
+    def add_station( #TODO: Add a check to see if the station already exists. Raise an exception to be caught by command
         self, station_id: str, owner_first_name: str, owner_last_name: str
     ) -> None:
         """Add a station to the Firestore database.
@@ -138,7 +137,7 @@ class BadgeChecker:
         """
         # Iterate through the badge statuses in the passed in list
         for station in badge_statuses:
-            # Reference to the Checks collection for the given station, using the 
+            # Reference to the Checks collection for the given station, using the
             # ID contained in the badge status item.
             doc_ref = (
                 self.db.collection("Stations")
@@ -163,12 +162,12 @@ class BadgeChecker:
 
             # True check may not be there, so it is reset every iteration.
             true_check = None
-            
+
             # Dictionary to store the station's badge info.
             station_badge_info = {}
             station_badge_info["StationID"] = station["StationID"]
             station_badge_info["OwnerFirstName"] = station["OwnerFirstName"]
-            
+
             # Reference to the Checks collection for the given station.
             collection_ref = (
                 self.db.collection("Stations")
@@ -220,7 +219,6 @@ class BadgeChecker:
             badge_info.append(station_badge_info)
 
         return badge_info
-
 
 if __name__ == "__main__":
     checker = BadgeChecker()
