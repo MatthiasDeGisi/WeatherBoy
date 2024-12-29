@@ -4,6 +4,7 @@ from discord.ext import commands
 
 # Import custom badgechecker class.
 from classes import BadgeChecker
+from classes import DailyUpdateManager
 
 # Importing the datetime modules for calculating the time.
 import datetime
@@ -19,11 +20,9 @@ class CheckBadge(commands.Cog):
         # This is a reference to the bot object that is passed in when the cog is loaded.
         self.bot = bot # May not be needed
         
-        # Create a new BadgeChecker object.
+        # Create a new BadgeChecker object and daily update manager.
         self.checker = BadgeChecker()
-        
-        # Set the time for the daily update.
-        self.daily_update_time = datetime.time(9, 0)
+        self.daily_update_manager = DailyUpdateManager()
 
     # This is a decorator that registers a new command under the bot. the .tree part
     # is needed for slash commands (app commands), as opposed to a regular prefix command.
