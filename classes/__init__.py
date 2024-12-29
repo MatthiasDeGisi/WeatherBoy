@@ -5,4 +5,3 @@ instead of:
 from classes.BadgeChecker import BadgeChecker
 '''
 from .BadgeChecker import BadgeChecker
-from .DailyUpdateManager import DailyUpdateManager
