@@ -156,7 +156,7 @@ class BadgeChecker:
             list: A list with all stations, which are each sub dicts with the
             station's badge info and optionally time with badge.
         """
-        stations = self.get_stations()  # TODO pass this in instead
+        stations = self.get_stations()  # TODO pass this in instead (???)
         badge_info = []
 
         for station in stations:

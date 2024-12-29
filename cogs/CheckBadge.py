@@ -67,7 +67,17 @@ class CheckBadge(commands.Cog):
         except Exception as e:
             await interaction.response.send_message(f"Error removing station: {e}")
     
-    
+    @app_commands.command(name="forecast")
+    async def forecast(self, interaction: discord.Interaction):
+        """Command to get the status of all the stations.
+
+        Args:
+            interaction (discord.Interaction): This is passed in by the discord.py library and is used to send messages back to the user.
+        """
+        try:
+            self.BadgeChecker.get_badge_status()
+        except Exception as e:
+            await interaction.response.send_message(f"Error: {e}")
 
 async def setup(bot):
     """Setup function to add the cog as an extension. is used by the bot.load_extension() function. Must be async."""

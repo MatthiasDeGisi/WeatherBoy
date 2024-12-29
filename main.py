@@ -7,10 +7,6 @@ from discord.ext import commands
 import os
 from dotenv import load_dotenv
 
-# Importing the datetime modules for calculating the time.
-# import datetime
-# from datetime import timedelta
-
 load_dotenv()
 
 # Setting up the client with intents.
