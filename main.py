@@ -29,7 +29,7 @@ def find_winner():
     response = requests.get("https://www.wunderground.com/dashboard/pws/IGABRI5")
     darren = response.text
 
-    response = requests.get("https://www.wunderground.com/dashboard/pws/IEXTEN1")
+    response = requests.get("https://www.wunderground.com/dashboard/pws/INANAI140")
     brandon = response.text
 
     if "goldstar" in darren and "goldstar" in brandon:
